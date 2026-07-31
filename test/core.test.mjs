@@ -12,7 +12,12 @@ function page({ name, contact = "", item = "半身", status = "未着手" }) {
     id: `${name}-${item}`,
     properties: {
       委託人: { type: "title", title: [{ plain_text: name }] },
-      聯絡方式: { type: "url", url: contact || null },
+      聯絡方式: {
+        type: "files",
+        files: contact
+          ? [{ name: contact, type: "external", external: { url: contact } }]
+          : []
+      },
       委託項目: {
         type: "multi_select",
         multi_select: item.split("、").map((value) => ({ name: value }))
@@ -46,6 +51,18 @@ test("Facebook username、numeric ID 與 share URL 都可正規化", () => {
       "facebook.com/share/1ctfywokb8"
     )
   );
+});
+
+test("Notion files 型別中的外部聯絡網址會成為查詢鍵", () => {
+  const [record] = buildDataset([
+    {
+      year: 2026,
+      pages: [page({ name: "梨", contact: "https://www.plurk.com/u/Xiluo_102072" })]
+    }
+  ]).records;
+
+  assert.ok(record.keys.includes("xiluo_102072"));
+  assert.ok(record.keys.includes("plurk.com/u/xiluo_102072"));
 });
 
 test("狀態只接受未著手與進行中", () => {
@@ -95,4 +112,3 @@ test("多年度資料各自重新計算排隊人數", () => {
     ]
   );
 });
-

@@ -25,6 +25,11 @@ export function notionPropertyText(property) {
       return property.status?.name ?? "";
     case "multi_select":
       return (property.multi_select ?? []).map((option) => option.name).join("、");
+    case "files":
+      return (property.files ?? [])
+        .map((file) => file?.external?.url ?? file?.name ?? "")
+        .filter(Boolean)
+        .join("\n");
     case "number":
       return property.number == null ? "" : String(property.number);
     case "formula": {
@@ -61,7 +66,10 @@ export function normalizeStatus(value) {
 
 function rowFromPage(page, year) {
   const clientName = pagePropertyText(page, "委託人").trim();
-  const contact = pagePropertyText(page, "聯絡方式").trim();
+  const contacts = pagePropertyText(page, "聯絡方式")
+    .split(/\r?\n/gu)
+    .map((value) => value.trim())
+    .filter(Boolean);
   const item = pagePropertyText(page, "委託項目").trim() || "未標示項目";
   const status = normalizeStatus(pagePropertyText(page, "進度"));
 
@@ -69,7 +77,8 @@ function rowFromPage(page, year) {
     return null;
   }
 
-  const keys = new Set(lookupKeys(contact));
+  // files 欄位可能放入多個外部網址；逐一解析，才能讓每個社群 ID 都可查詢。
+  const keys = new Set(contacts.flatMap((contact) => [...lookupKeys(contact)]));
   const normalizedName = normalizeText(clientName);
   if (normalizedName) keys.add(normalizedName);
 
@@ -122,4 +131,3 @@ export function buildDataset(sources, updatedAt = new Date().toISOString()) {
     records
   };
 }
-

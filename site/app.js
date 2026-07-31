@@ -28,6 +28,7 @@ function formatUpdatedAt(value) {
 
 function clearResults() {
   resultsBox.replaceChildren();
+  resultCount.textContent = "";
   resultCount.hidden = true;
 }
 
@@ -136,4 +137,3 @@ async function loadDataset() {
 }
 
 loadDataset();
-
