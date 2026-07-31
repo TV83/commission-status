@@ -2,7 +2,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildDataset } from "../src/core.mjs";
-import { queryNotionView } from "../src/notion.mjs";
+import {
+  orderPagesByView,
+  queryNotionView,
+  queryPublicViewOrder
+} from "../src/notion.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputPath = resolve(projectRoot, "site", "data", "commissions.json");
@@ -22,10 +26,15 @@ function parseSources(value) {
 
   return sources.map((source, index) => {
     const year = Number(source.year);
-    if (!Number.isInteger(year) || !source.viewId) {
-      throw new Error(`第 ${index + 1} 個來源缺少有效的 year 或 viewId。`);
+    if (!Number.isInteger(year) || !source.databaseId || !source.viewId) {
+      throw new Error(`第 ${index + 1} 個來源缺少有效的 year、databaseId 或 viewId。`);
     }
-    return { ...source, year, viewId: String(source.viewId) };
+    return {
+      ...source,
+      year,
+      databaseId: String(source.databaseId),
+      viewId: String(source.viewId)
+    };
   });
 }
 
@@ -39,8 +48,18 @@ async function main() {
 
   const resolvedSources = [];
   for (const source of sources) {
-    const pages = await queryNotionView({ viewId: source.viewId, token });
-    resolvedSources.push({ year: source.year, pages });
+    // 兩個讀取工作彼此獨立，所以同時執行可以縮短 GitHub Actions 的等待時間。
+    const [pages, pageOrder] = await Promise.all([
+      queryNotionView({ viewId: source.viewId, token }),
+      queryPublicViewOrder({
+        databaseId: source.databaseId,
+        viewId: source.viewId
+      })
+    ]);
+    resolvedSources.push({
+      year: source.year,
+      pages: orderPagesByView(pages, pageOrder)
+    });
   }
 
   const dataset = buildDataset(resolvedSources);
@@ -50,4 +69,3 @@ async function main() {
 }
 
 await main();
-
