@@ -2,12 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildDataset,
+  groupQueueRecords,
   lookupKeys,
   normalizeStatus,
   normalizeText
 } from "../src/core.mjs";
 
-function page({ name, contact = "", item = "半身", status = "未着手" }) {
+function page({
+  name,
+  contact = "",
+  item = "半身",
+  status = "未着手",
+  month = "八月",
+  deadline = null,
+  paymentStatus = "未付款"
+}) {
   return {
     id: `${name}-${item}`,
     properties: {
@@ -22,7 +31,10 @@ function page({ name, contact = "", item = "半身", status = "未着手" }) {
         type: "multi_select",
         multi_select: item.split("、").map((value) => ({ name: value }))
       },
-      進度: { type: "status", status: { name: status } }
+      進度: { type: "status", status: { name: status } },
+      月份: { type: "rich_text", rich_text: [{ plain_text: month }] },
+      最晚截稿日: { type: "date", date: deadline ? { start: deadline } : null },
+      付款狀態: { type: "status", status: { name: paymentStatus } }
     }
   };
 }
@@ -63,6 +75,43 @@ test("Notion files 型別中的外部聯絡網址會成為查詢鍵", () => {
 
   assert.ok(record.keys.includes("xiluo_102072"));
   assert.ok(record.keys.includes("plurk.com/u/xiluo_102072"));
+});
+
+test("有效委託會輸出月份、截稿日、付款狀態與排單列 ID", () => {
+  const [record] = buildDataset([
+    {
+      year: 2026,
+      pages: [
+        page({
+          name: "甲",
+          month: "九月",
+          deadline: "2026-09-30",
+          paymentStatus: "已付款"
+        })
+      ]
+    }
+  ]).records;
+
+  assert.match(record.queueId, /^2026-/u);
+  assert.equal(record.month, "九月");
+  assert.equal(record.deadline, "2026-09-30");
+  assert.equal(record.paymentStatus, "已付款");
+});
+
+test("側欄月份分組會保留原本排單順序與筆數", () => {
+  const groups = groupQueueRecords([
+    { year: 2026, month: "八月", queueId: "a" },
+    { year: 2026, month: "八月", queueId: "b" },
+    { year: 2026, month: "九月", queueId: "c" }
+  ]);
+
+  assert.deepEqual(
+    groups.map((group) => [group.year, group.month, group.records.length]),
+    [
+      [2026, "八月", 2],
+      [2026, "九月", 1]
+    ]
+  );
 });
 
 test("狀態只接受未著手與進行中", () => {

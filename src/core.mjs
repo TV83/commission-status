@@ -1,6 +1,6 @@
-import { lookupKeys, normalizeText } from "../site/core.js";
+import { groupQueueRecords, lookupKeys, normalizeText } from "../site/core.js";
 
-export { lookupKeys, normalizeText };
+export { groupQueueRecords, lookupKeys, normalizeText };
 
 export function notionPropertyText(property) {
   if (!property || typeof property !== "object") {
@@ -30,6 +30,8 @@ export function notionPropertyText(property) {
         .map((file) => file?.external?.url ?? file?.name ?? "")
         .filter(Boolean)
         .join("\n");
+    case "date":
+      return property.date?.start ?? "";
     case "number":
       return property.number == null ? "" : String(property.number);
     case "formula": {
@@ -72,6 +74,9 @@ function rowFromPage(page, year) {
     .filter(Boolean);
   const item = pagePropertyText(page, "委託項目").trim() || "未標示項目";
   const status = normalizeStatus(pagePropertyText(page, "進度"));
+  const month = pagePropertyText(page, "月份").trim() || "未分月";
+  const deadline = pagePropertyText(page, "最晚截稿日").trim() || null;
+  const paymentStatus = pagePropertyText(page, "付款狀態").trim() || "未標示";
 
   if (!status || !clientName) {
     return null;
@@ -83,9 +88,13 @@ function rowFromPage(page, year) {
   if (normalizedName) keys.add(normalizedName);
 
   return {
+    queueId: `${year}-${page.id}`,
     year,
+    month,
     item,
     status,
+    deadline,
+    paymentStatus,
     keys: [...keys],
     // personKey 只在同步時計算人數使用，不會輸出成網站欄位。
     personKey: normalizedName || [...keys][0] || page.id
@@ -116,17 +125,21 @@ export function buildDataset(sources, updatedAt = new Date().toISOString()) {
       }
 
       records.push({
+        queueId: current.queueId,
         keys: current.keys,
         year: current.year,
+        month: current.month,
         item: current.item,
         status: current.status,
+        deadline: current.deadline,
+        paymentStatus: current.paymentStatus,
         peopleAhead: peopleAhead.size
       });
     }
   }
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt,
     records
   };

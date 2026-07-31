@@ -111,3 +111,24 @@ export function lookupKeys(value) {
   return keys;
 }
 
+/**
+ * 這個函式把相鄰且同年度、同月份的委託放進同一組。
+ * 保留原本陣列順序，側欄才會和 Notion 排單由上到下完全一致。
+ */
+export function groupQueueRecords(records) {
+  const groups = [];
+
+  for (const record of records) {
+    const month = record.month || "未分月";
+    const previousGroup = groups.at(-1);
+
+    if (previousGroup?.year === record.year && previousGroup.month === month) {
+      previousGroup.records.push(record);
+      continue;
+    }
+
+    groups.push({ year: record.year, month, records: [record] });
+  }
+
+  return groups;
+}

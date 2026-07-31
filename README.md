@@ -1,15 +1,15 @@
 # 委託進度查詢
 
-這是一個由 GitHub Pages 提供的靜態查詢網站。GitHub Actions 每 15 分鐘透過 Notion API 讀取排單，將有效委託轉成公開 JSON；訪客的查詢完全在瀏覽器內完成。
+這是一個由 GitHub Pages 提供的靜態查詢網站。GitHub Actions 每天台灣時間凌晨 2 點透過 Notion API 讀取排單，將有效委託轉成公開 JSON；訪客的查詢完全在瀏覽器內完成。
 
 ## Program flow
 
 1. GitHub Actions 使用 `NOTION_TOKEN` 查詢 `NOTION_SOURCES_JSON` 中的 Notion View，取得欄位資料。
 2. 同步程式從公開 Notion 頁面的唯讀 View 設定取得 `page_sort`，也就是畫面手動拖曳後的 Page ID 順序。
-3. 程式用 Page ID 把兩份資料配對，只保留「未著手」與「進行中」，再計算前方尚未著手的不同委託人人數。
+3. 程式用 Page ID 把兩份資料配對，只保留「未著手」與「進行中」，再加入月份、最晚截稿日、付款狀態並計算前方尚未著手的不同委託人人數。
 4. 若任何 View 資料缺少可靠排序，工作流程會停止，既有成功版本繼續在線，不會發布猜測的人數。
 5. 程式產生 `site/data/commissions.json`，測試通過後發布整個 `site` 目錄。
-6. 訪客輸入 Facebook／Plurk ID、網址或委託名稱；瀏覽器把輸入正規化後，直接比對公開資料。
+6. 瀏覽器依月份顯示可捲動排單側欄；訪客輸入 Facebook／Plurk ID、網址或委託名稱後，才顯示查詢結果，同時高亮並定位側欄中的相符列。
 
 ## Repository settings
 
