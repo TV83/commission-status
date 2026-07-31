@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f1e8" />
+    <meta
+      name="description"
+      content="輸入委託時使用的 Facebook、Plurk ID、個人頁網址或委託名稱，查詢目前進度與前方人數。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_TW" />
+    <meta property="og:title" content="委託進度查詢" />
+    <meta
+      property="og:description"
+      content="查詢目前委託進度與前方尚未著手的人數。"
+    />
+    <meta
+      property="og:image"
+      content="https://tv83.github.io/commission-status/og.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="委託進度查詢" />
+    <meta
+      name="twitter:description"
+      content="查詢目前委託進度與前方尚未著手的人數。"
+    />
+    <meta
+      name="twitter:image"
+      content="https://tv83.github.io/commission-status/og.png"
+    />
+    <title>委託進度查詢</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="回到委託進度查詢首頁">
+          <span class="brand-mark" aria-hidden="true">●</span>
+          <span>COMMISSION STATUS</span>
+        </a>
+        <p class="header-note">排單進度・自助查詢</p>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <p class="eyebrow">STATUS LOOKUP</p>
+          <h1 id="page-title">委託進度<br />查詢</h1>
+          <p class="intro">
+            輸入委託時使用的 Facebook、Plurk ID、個人頁網址，或 Notion
+            上的委託名稱。
+          </p>
+
+          <form id="lookup-form" class="lookup-form" novalidate>
+            <label for="lookup-input">你的 ID、網址或委託名稱</label>
+            <div class="input-row">
+              <input
+                id="lookup-input"
+                name="lookup"
+                type="text"
+                inputmode="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="例如：plurk_uid 或 facebook.com/name"
+                required
+              />
+              <button id="lookup-button" type="submit">查詢進度</button>
+            </div>
+            <p class="form-hint">網址可直接整段貼上，不必先移除分享參數。</p>
+          </form>
+        </section>
+
+        <section class="results-panel" aria-labelledby="results-title">
+          <div class="results-heading">
+            <div>
+              <p class="eyebrow">YOUR COMMISSIONS</p>
+              <h2 id="results-title">查詢結果</h2>
+            </div>
+            <span id="result-count" class="result-count" hidden></span>
+          </div>
+
+          <div id="lookup-status" class="lookup-status" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>資料讀取中，請稍候。</span>
+          </div>
+          <div id="results" class="results" aria-live="polite"></div>
+        </section>
+      </main>
+
+      <footer>
+        <p>資料會定期從排單同步，實際細節仍以委託溝通為準。</p>
+        <p id="updated-at">最近同步：讀取中</p>
+      </footer>
+    </div>
+  </body>
+</html>
+

@@ -1,0 +1,16 @@
+{
+  "name": "commission-status",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A static GitHub Pages lookup site generated from a Notion commission schedule.",
+  "scripts": {
+    "build": "node scripts/validate-site.mjs",
+    "sync": "node scripts/sync-notion.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
+
